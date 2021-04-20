@@ -151,11 +151,7 @@ class Pretsa:
         return cutOutCases
 
     def __generateNewAnnotation(self, activity, node_stats):
-        #normaltest works only with more than 8 samples
-        if(len(self.annotationDataOverAll[activity])) >=8:
-            stat, p = node_stats["normaltest"]
-        else:
-            p = 1.0
+        stat, p = node_stats["normaltest"]
         if p <= self.normaltest_alpha:
             mean = node_stats["mean"]
             std = node_stats["std"]
@@ -171,7 +167,8 @@ class Pretsa:
             if node != self.tree:
                 annotationDataOverAll = self.annotationDataOverAll[node.name]
                 node_stats = {
-                    "normaltest": normaltest(annotationDataOverAll),
+                    # normaltest works only with 8 or more samples
+                    "normaltest": normaltest(annotationDataOverAll) if len(annotationDataOverAll) >= 8 else (None, 1),
                     "mean": np.mean(annotationDataOverAll),
                     "std": np.std(annotationDataOverAll)
                 }
