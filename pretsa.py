@@ -150,15 +150,15 @@ class Pretsa:
             self.__combineTracesAndTree(cutOutCases)
         return cutOutCases
 
-    def __generateNewAnnotation(self, activity):
+    def __generateNewAnnotation(self, activity, node_stats):
         #normaltest works only with more than 8 samples
         if(len(self.annotationDataOverAll[activity])) >=8:
-            stat, p = normaltest(self.annotationDataOverAll[activity])
+            stat, p = node_stats["normaltest"]
         else:
             p = 1.0
         if p <= self.normaltest_alpha:
-            mean = np.mean(self.annotationDataOverAll[activity])
-            std = np.std(self.annotationDataOverAll[activity])
+            mean = node_stats["mean"]
+            std = node_stats["std"]
             randomValue = np.random.normal(mean, std)
         else:
             randomValue = np.random.choice(self.annotationDataOverAll[activity])
@@ -169,11 +169,17 @@ class Pretsa:
         events = []
         for node in PreOrderIter(self.tree):
             if node != self.tree:
+                annotationDataOverAll = self.annotationDataOverAll[node.name]
+                node_stats = {
+                    "normaltest": normaltest(annotationDataOverAll),
+                    "mean": np.mean(annotationDataOverAll),
+                    "std": np.std(annotationDataOverAll)
+                }
                 for case in node.cases:
                     event = dict()
                     event[self.activityColName] = node.name
                     event[self.caseIDColName] = case
-                    event[self.annotationColName] = node.annotations.get(case,self.__generateNewAnnotation(node.name))
+                    event[self.annotationColName] = node.annotations.get(case,self.__generateNewAnnotation(node.name, node_stats))
                     event[self.constantEventNr] = node.depth
                     events.append(event)
         eventLog = pd.DataFrame(events)
