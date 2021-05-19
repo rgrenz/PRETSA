@@ -24,19 +24,22 @@ with open(writeFilePath, 'w+') as writeFile:
                 filePath = dictPath + dataset + "_duration_t" + tString[t] + "_k" + str(k) + "_pretsa.csv"
                 t = round(0.1 - (t*0.025), 3)
                 if os.path.isfile(filePath):
-                    eventLog = pd.read_csv(filePath, delimiter=";")
-                    eventLog = eventLog.replace(-1.0,np.nan)
-                    if not eventLog.empty:
-                        data = eventLog.groupby('Activity').Duration.agg("mean")
-                        for row in data.iteritems():
-                            (key, value) = row
-                            line = dict()
-                            line["Event Log"] = dataset
-                            line["k"] = k
-                            line["t"] = str(t)
-                            line["method"] = "pretsa"
-                            line["activity"] = key
-                            line["Avg. Duration"] = value
-                            writer.writerow(line)
+                    try:
+                        eventLog = pd.read_csv(filePath, delimiter=";")
+                        eventLog = eventLog.replace(-1.0,np.nan)
+                        if not eventLog.empty:
+                            data = eventLog.groupby('Activity').Duration.agg("mean")
+                            for row in data.iteritems():
+                                (key, value) = row
+                                line = dict()
+                                line["Event Log"] = dataset
+                                line["k"] = k
+                                line["t"] = str(t)
+                                line["method"] = "pretsa"
+                                line["activity"] = key
+                                line["Avg. Duration"] = value
+                                writer.writerow(line)
+                    except pd.errors.EmptyDataError:
+                        print("Dataset " + dataset + " with k = " + str(k) + "and t = " + str(t) + " is empty")
                 else:
                     print(filePath + " does not exist")
